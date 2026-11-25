@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>{{ project.name }}</h2>
+  <p>Client: <b>{{ project.client_name }}</b> | Methodology: <b>{{ project.get_methodology_display }}</b></p>
+  <p>{{ project.description }}</p>
+  <p>Delivery progress: {{ project.progress_percent }}% of requirements done</p>
+  <div class="bar"><div style="width: {{ project.progress_percent }}%"></div></div>
+</div>
+
+<div class="card">
+  <h3>1. Requirements</h3>
+  <table>
+    <tr><th>Code</th><th>Title</th><th>Type</th><th>Priority</th><th>Status</th><th>{{ project.iteration_label }}</th><th></th></tr>
+    {% for r in requirements %}
+    <tr>
+      <td>{{ r.code }}</td><td>{{ r.title }}</td><td>{{ r.get_requirement_type_display }}</td>
+      <td>{{ r.get_priority_display }}</td><td><span class="badge {{ r.status }}">{{ r.get_status_display }}</span></td>
+      <td>{{ r.iteration.name|default:"-" }}</td>
+      <td><a href="{% url 'edit_requirement' r.pk %}">Edit</a></td>
+    </tr>
+    {% empty %}<tr><td colspan="7">No requirements captured yet.</td></tr>
+    {% endfor %}
+  </table>
+  <p><a class="btn" href="{% url 'add_requirement' project.pk %}">+ Add requirement</a></p>
+</div>
+
+<div class="card">
+  <h3>2. {{ project.iteration_label }}s</h3>
+  <table>
+    <tr><th>Name</th><th>Dates</th><th>Requirements</th></tr>
+    {% for it in iterations %}
+    <tr><td>{{ it.name }}</td><td>{{ it.start_date }} to {{ it.end_date }}</td><td>{{ it.requirements.count }}</td></tr>
+    {% empty %}<tr><td colspan="3">No {{ project.iteration_label|lower }}s yet.</td></tr>
+    {% endfor %}
+  </table>
+  <p><a class="btn" href="{% url 'add_iteration' project.pk %}">+ Add {{ project.iteration_label|lower }}</a></p>
+</div>
+
+<div class="card">
+  <h3>3. Design documents (versioned)</h3>
+  <table>
+    <tr><th>Version</th><th>Created</th><th>Status</th></tr>
+    {% for d in documents %}
+    <tr><td><a href="{% url 'document_detail' d.pk %}">v{{ d.version }}</a></td><td>{{ d.created_at|date:"d M Y H:i" }}</td>
+        <td><span class="badge {{ d.status }}">{{ d.get_status_display }}</span></td></tr>
+    {% empty %}<tr><td colspan="3">No documents yet.</td></tr>
+    {% endfor %}
+  </table>
+  <form method="post" action="{% url 'generate_document' project.pk %}">{% csrf_token %}
+    <p><button type="submit">Generate design document + implementation plan</button></p>
+  </form>
+</div>
+{% endblock %}

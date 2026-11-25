@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <p><a href="{% url 'project_detail' document.project.pk %}">&larr; {{ document.project.name }}</a></p>
+  <h2>Design document v{{ document.version }} <span class="badge {{ document.status }}">{{ document.get_status_display }}</span></h2>
+  <pre>{{ document.content }}</pre>
+</div>
+<div class="grid">
+  <div class="card">
+    <h3>Review history</h3>
+    {% for s in signoffs %}
+      <p><b>{{ s.reviewer_name }}</b>: <span class="badge {{ s.decision }}">{{ s.get_decision_display }}</span> ({{ s.signed_at|date:"d M Y H:i" }})<br>{{ s.comments }}</p>
+    {% empty %}<p>No reviews yet.</p>{% endfor %}
+  </div>
+  <div class="card">
+    <h3>Client review / sign-off</h3>
+    {% if is_latest %}
+      <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Submit review</button></form>
+    {% else %}
+      <p>This is an older version. Only the latest version can be reviewed.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
